@@ -15,18 +15,15 @@ let db;
 //
 // However, if the environment is not 'test' (e.g., the environment is 'development') then the application will use
 // the SQLite database specified in the SQLITE_FILE_NAME
-if (process.env.NODE_ENV === "test")
-{
+if (process.env.NODE_ENV === "test") {
     console.log("Creating an in memory SQLite database for running the test suite...");
 
     const contentOfSchemaSQLFile = fs.readFileSync("./resources/sql/schema.sql", "utf8");
     const contentOfSeedsSQLFile = fs.readFileSync("./resources/sql/seeds.sql", "utf8");
 
     // Creates a connection to an in-memory SQLite database
-    db = new sqlite3.Database(":memory:", function(err)
-    {
-        if (err)
-        {
+    db = new sqlite3.Database(":memory:", function (err) {
+        if (err) {
             return console.error(err.message);
         }
 
@@ -36,24 +33,19 @@ if (process.env.NODE_ENV === "test")
         console.log(`Connected to the ':memory:' SQLite database.`);
         console.log("Creating the tables from the 'schema.sql' file...");
         console.log("Populating them with data from the 'seeds.sql' file...");
-        db.serialize(function()
-        {
+        db.serialize(function () {
             // the serialize method ensures that the SQL queries from the exec calls are executed sequentially
             // (i.e., one after the other instead of being executed in parallel)
             db.exec(contentOfSchemaSQLFile);
             db.exec(contentOfSeedsSQLFile);
         });
     });
-}
-else
-{
+} else {
     // This is the default environment (e.g., 'development')
 
     // Create a connection to the SQLite database file specified in SQLITE_FILE_NAME
-    db = new sqlite3.Database("./" + SQLITE_FILE_NAME, function(err)
-    {
-        if (err)
-        {
+    db = new sqlite3.Database("./" + SQLITE_FILE_NAME, function (err) {
+        if (err) {
             return console.error(err.message);
         }
 
@@ -65,15 +57,12 @@ else
 }
 
 
-function getAllClasses()
-{
-    return new Promise(function(resolve, reject)
-    {
-        db.serialize(function()
-        {
+function getAllClasses() {
+    return new Promise(function (resolve, reject) {
+        db.serialize(function () {
             // note the backticks ` which allow us to write a multiline string
             const sql =
-                `SELECT id, code, title, description, max_students 
+                `SELECT id, code, title, description, max_students
                  FROM classes;`;
 
             let listOfClasses = []; // initialize an empty array
@@ -81,10 +70,8 @@ function getAllClasses()
             // print table header
             printTableHeader(["id", "code", "title", "description", "max_students"]);
 
-            const callbackEachRowProcessing = function(err, row)
-            {
-                if (err)
-                {
+            const callbackEachRowProcessing = function (err, row) {
+                if (err) {
                     reject(err);
                 }
 
@@ -110,8 +97,7 @@ function getAllClasses()
                 listOfClasses.push(classForCurrentRow);
             };
 
-            const callbackAfterAllRowsProcessed = function()
-            {
+            const callbackAfterAllRowsProcessed = function () {
                 resolve(listOfClasses);
             };
 
@@ -121,26 +107,20 @@ function getAllClasses()
 }
 
 
-function getClassWithId(id)
-{
-    return new Promise(function(resolve, reject)
-    {
-        db.serialize(function()
-        {
+function getClassWithId(id) {
+    return new Promise(function (resolve, reject) {
+        db.serialize(function () {
             const sql =
-                `SELECT id, code, title, description, max_students 
-                 FROM classes 
+                `SELECT id, code, title, description, max_students
+                 FROM classes
                  WHERE id = ?;`;
 
-            function callbackAfterReturnedRowIsProcessed(err, row)
-            {
-                if (err)
-                {
+            function callbackAfterReturnedRowIsProcessed(err, row) {
+                if (err) {
                     reject(err);
                 }
 
-                if (row === undefined)
-                {
+                if (row === undefined) {
                     resolve(null);
                     return;
                 }
@@ -174,26 +154,20 @@ function getClassWithId(id)
 }
 
 
-function addNewClass(newClass)
-{
-    return new Promise(function(resolve, reject)
-    {
-        db.serialize(function()
-        {
+function addNewClass(newClass) {
+    return new Promise(function (resolve, reject) {
+        db.serialize(function () {
             const sql =
-                `INSERT INTO classes (code, title, description, max_students) 
+                `INSERT INTO classes (code, title, description, max_students)
                  VALUES (?, ?, ?, ?);`;
 
-            function callbackAfterReturnedRowIsProcessed(err, row)
-            {
-                if (err)
-                {
+            function callbackAfterReturnedRowIsProcessed(err, row) {
+                if (err) {
                     reject(err);
                 }
 
                 const numberOfRowsAffected = this.changes;
-                if (numberOfRowsAffected > 0)
-                {
+                if (numberOfRowsAffected > 0) {
                     const generatedIdForTheNewlyInsertedClass = this.lastID;
 
                     console.log("SUCCESSFULLY inserted a new class with id = " + generatedIdForTheNewlyInsertedClass);
@@ -212,33 +186,28 @@ function addNewClass(newClass)
 }
 
 
-function updateExistingClassInformation(classToUpdate)
-{
-    return new Promise(function(resolve, reject)
-    {
-        db.serialize(function()
-        {
+function updateExistingClassInformation(classToUpdate) {
+    return new Promise(function (resolve, reject) {
+        db.serialize(function () {
             const sql =
-                `UPDATE classes 
-                 SET code = ?, title = ?, description = ?, max_students = ? 
+                `UPDATE classes
+                 SET code         = ?,
+                     title        = ?,
+                     description  = ?,
+                     max_students = ?
                  WHERE id = ?;`;
 
-            function callbackAfterReturnedRowIsProcessed(err, row)
-            {
-                if (err)
-                {
+            function callbackAfterReturnedRowIsProcessed(err, row) {
+                if (err) {
                     reject(err);
                 }
 
                 const numberOfRowsAffected = this.changes;
-                if (numberOfRowsAffected > 0)
-                {
+                if (numberOfRowsAffected > 0) {
                     console.log("SUCCESSFULLY updated the class with id = " + classToUpdate.id);
 
                     resolve(classToUpdate);
-                }
-                else
-                {
+                } else {
                     reject("ERROR: could not update the class with id = " + classToUpdate.id);
                 }
             }
@@ -251,32 +220,25 @@ function updateExistingClassInformation(classToUpdate)
 }
 
 
-function deleteExistingClass(id)
-{
-    return new Promise(function(resolve, reject)
-    {
-        db.serialize(function()
-        {
+function deleteExistingClass(id) {
+    return new Promise(function (resolve, reject) {
+        db.serialize(function () {
             const sql =
-                `DELETE FROM classes 
+                `DELETE
+                 FROM classes
                  WHERE id = ?;`;
 
-            function callbackAfterReturnedRowIsProcessed(err, row)
-            {
-                if (err)
-                {
+            function callbackAfterReturnedRowIsProcessed(err, row) {
+                if (err) {
                     reject(err);
                 }
 
                 const numberOfRowsAffected = this.changes;
-                if (numberOfRowsAffected > 0)
-                {
+                if (numberOfRowsAffected > 0) {
                     console.log("SUCCESSFULLY deleted the class with id = " + id);
 
                     resolve(id);
-                }
-                else
-                {
+                } else {
                     reject("ERROR: could not delete the class with id = " + id);
                 }
             }
@@ -289,24 +251,19 @@ function deleteExistingClass(id)
 }
 
 
-function getAllStudents()
-{
-    return new Promise(function(resolve, reject)
-    {
-        db.serialize(function()
-        {
+function getAllStudents() {
+    return new Promise(function (resolve, reject) {
+        db.serialize(function () {
             const sql =
-                `SELECT id, first_name, last_name, birth_date 
+                `SELECT id, first_name, last_name, birth_date
                  FROM students;`;
 
             let listOfStudents = []; // initialize an empty array
 
             printTableHeader(["id", "first_name", "last_name", "birth_date"]);
 
-            const callbackEachRowProcessing = function(err, row)
-            {
-                if (err)
-                {
+            const callbackEachRowProcessing = function (err, row) {
+                if (err) {
                     reject(err);
                 }
 
@@ -331,8 +288,7 @@ function getAllStudents()
 
             };
 
-            const callbackAfterAllRowsProcessed = function()
-            {
+            const callbackAfterAllRowsProcessed = function () {
                 resolve(listOfStudents);
             };
 
@@ -342,24 +298,20 @@ function getAllStudents()
 }
 
 
-function getStudentWithId(id)
-{
-    return new Promise(function(resolve, reject)
-    {
-        db.serialize(function()
-        {
+function getStudentWithId(id) {
+    return new Promise(function (resolve, reject) {
+        db.serialize(function () {
             const sql =
-                `TODO: replace me with actual query`;
+                `SELECT id, first_name, last_name, birth_date
+                 FROM students
+                 WHERE id = ?;`;
 
-            function callbackAfterReturnedRowIsProcessed(err, row)
-            {
-                if (err)
-                {
+            function callbackAfterReturnedRowIsProcessed(err, row) {
+                if (err) {
                     reject(err);
                 }
 
-                if (row === undefined)
-                {
+                if (row === undefined) {
                     resolve(null);
                     return;
                 }
@@ -392,25 +344,21 @@ function getStudentWithId(id)
 }
 
 
-function addNewStudent(createdStudent)
-{
-    return new Promise(function(resolve, reject)
-    {
-        db.serialize(function()
-        {
+function addNewStudent(createdStudent) {
+    return new Promise(function (resolve, reject) {
+        db.serialize(function () {
             const sql =
-                `TODO: replace me with actual query`;
+                `INSERT INTO students (first_name, last_name, birth_date)
+                 VALUES (?, ?, ?);`;
 
-            function callbackAfterReturnedRowIsProcessed(err, row)
-            {
-                if (err)
-                {
+
+            function callbackAfterReturnedRowIsProcessed(err, row) {
+                if (err) {
                     reject(err);
                 }
 
                 const numberOfRowsAffected = this.changes;
-                if (numberOfRowsAffected > 0)
-                {
+                if (numberOfRowsAffected > 0) {
                     const generatedIdForTheNewlyInsertedStudent = this.lastID;
 
                     console.log("SUCCESSFULLY inserted a new student with id = " + generatedIdForTheNewlyInsertedStudent);
@@ -429,31 +377,27 @@ function addNewStudent(createdStudent)
 }
 
 
-function updateExistingStudentInformation(studentToUpdate)
-{
-    return new Promise(function(resolve, reject)
-    {
-        db.serialize(function()
-        {
+function updateExistingStudentInformation(studentToUpdate) {
+    return new Promise(function (resolve, reject) {
+        db.serialize(function () {
             const sql =
-                `TODO: replace me with actual query`;
+                `UPDATE students
+                 SET first_name = ?,
+                     last_name  = ?,
+                     birth_date = ?
+                 WHERE id = ?;`;
 
-            function callbackAfterReturnedRowIsProcessed(err, row)
-            {
-                if (err)
-                {
+            function callbackAfterReturnedRowIsProcessed(err, row) {
+                if (err) {
                     reject(err);
                 }
 
                 const numberOfRowsAffected = this.changes;
-                if (numberOfRowsAffected > 0)
-                {
+                if (numberOfRowsAffected > 0) {
                     console.log("SUCCESSFULLY updated the student with id = " + studentToUpdate.id);
 
                     resolve(studentToUpdate);
-                }
-                else
-                {
+                } else {
                     reject("ERROR: could not update the student with id = " + studentToUpdate.id);
                 }
             }
@@ -466,31 +410,25 @@ function updateExistingStudentInformation(studentToUpdate)
 }
 
 
-function deleteExistingStudent(id)
-{
-    return new Promise(function(resolve, reject)
-    {
-        db.serialize(function()
-        {
+function deleteExistingStudent(id) {
+    return new Promise(function (resolve, reject) {
+        db.serialize(function () {
             const sql =
-                `TODO: replace me with actual query`;
+                `DELETE
+                FROM classes
+                WHERE id = ?;`;
 
-            function callbackAfterReturnedRowIsProcessed(err, row)
-            {
-                if (err)
-                {
+            function callbackAfterReturnedRowIsProcessed(err, row) {
+                if (err) {
                     reject(err);
                 }
 
                 const numberOfRowsAffected = this.changes;
-                if (numberOfRowsAffected > 0)
-                {
+                if (numberOfRowsAffected > 0) {
                     console.log("SUCCESSFULLY deleted the student with id = " + id);
 
                     resolve(id);
-                }
-                else
-                {
+                } else {
                     reject("ERROR: could not delete the student with id = " + id);
                 }
             }
@@ -503,12 +441,9 @@ function deleteExistingStudent(id)
 }
 
 
-function getAllRegisteredStudents()
-{
-    return new Promise(function(resolve, reject)
-    {
-        db.serialize(function()
-        {
+function getAllRegisteredStudents() {
+    return new Promise(function (resolve, reject) {
+        db.serialize(function () {
             const sql =
                 `TODO: replace me with actual query`;
 
@@ -516,10 +451,8 @@ function getAllRegisteredStudents()
 
             printTableHeader(["students.id", "student_full_name", "classes.code", "classes.title"]);
 
-            const callbackEachRowProcessing = function(err, row)
-            {
-                if (err)
-                {
+            const callbackEachRowProcessing = function (err, row) {
+                if (err) {
                     reject(err);
                 }
 
@@ -542,8 +475,7 @@ function getAllRegisteredStudents()
                 listOfRegisteredStudentJoinResults.push(studentForCurrentRow);
             };
 
-            const callbackAfterAllRowsProcessed = function()
-            {
+            const callbackAfterAllRowsProcessed = function () {
                 resolve(listOfRegisteredStudentJoinResults);
             };
 
@@ -553,31 +485,23 @@ function getAllRegisteredStudents()
 }
 
 
-function addStudentToClass(studentId, classId)
-{
-    return new Promise(function(resolve, reject)
-    {
-        db.serialize(function()
-        {
+function addStudentToClass(studentId, classId) {
+    return new Promise(function (resolve, reject) {
+        db.serialize(function () {
             const sql =
                 `TODO: replace me with actual query`;
 
-            function callbackAfterReturnedRowIsProcessed(err, row)
-            {
-                if (err)
-                {
+            function callbackAfterReturnedRowIsProcessed(err, row) {
+                if (err) {
                     reject(err);
                 }
 
                 const numberOfRowsAffected = this.changes;
-                if (numberOfRowsAffected > 0)
-                {
+                if (numberOfRowsAffected > 0) {
                     console.log("SUCCESSFULLY added the student with id = " + studentId + " to the class with id = " + classId);
 
                     resolve(studentId);
-                }
-                else
-                {
+                } else {
                     reject("ERROR: could not add the student with id = " + studentId + " to the class with id = " + classId);
                 }
             }
@@ -590,31 +514,23 @@ function addStudentToClass(studentId, classId)
 }
 
 
-function dropAnExistingStudentFromAClass(studentId, classId)
-{
-    return new Promise(function(resolve, reject)
-    {
-        db.serialize(function()
-        {
+function dropAnExistingStudentFromAClass(studentId, classId) {
+    return new Promise(function (resolve, reject) {
+        db.serialize(function () {
             const sql =
                 `TODO: replace me with actual query`;
 
-            function callbackAfterReturnedRowIsProcessed(err, row)
-            {
-                if (err)
-                {
+            function callbackAfterReturnedRowIsProcessed(err, row) {
+                if (err) {
                     reject(err);
                 }
 
                 const numberOfRowsAffected = this.changes;
-                if (numberOfRowsAffected > 0)
-                {
+                if (numberOfRowsAffected > 0) {
                     console.log("SUCCESSFULLY dropped the student with id = " + studentId + " from the class with id = " + classId);
 
                     resolve(studentId);
-                }
-                else
-                {
+                } else {
                     reject("ERROR: could not drop the student with id = " + studentId + " from the class with id = " + classId);
                 }
             }
@@ -627,22 +543,18 @@ function dropAnExistingStudentFromAClass(studentId, classId)
 }
 
 
-function getAllStudentsThatAreTakingAClass(classCode)
-{
+function getAllStudentsThatAreTakingAClass(classCode) {
     // TODO: implement this function
 }
 
 
-function showAllClassesInWhichAStudentIsEnrolled(studentId)
-{
+function showAllClassesInWhichAStudentIsEnrolled(studentId) {
     // TODO: implement this function
 }
 
-function printTableHeader(listOfColumnNames)
-{
+function printTableHeader(listOfColumnNames) {
     let buffer = "| ";
-    for (const columnName of listOfColumnNames)
-    {
+    for (const columnName of listOfColumnNames) {
         buffer += columnName + " | ";
     }
     console.log(buffer);
