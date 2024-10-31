@@ -145,7 +145,40 @@ router.put("/students/:id", async function (req, res)
  */
 router.patch("/students/:id", async function (req, res)
 {
-    // TODO: implement this route or the PUT route above
+    try {
+        const id = req.params.id;
+       const first_name = req.body.firstName || null;
+       const last_name = req.body.lastName || null;
+       const birth_date = req.body.birthDate || null;
+
+       console.log("first_name:", first_name);
+       console.log("last_name:", last_name);
+       console.log("birth_date:", birth_date);
+
+       let studentToUpdate = await db.getStudentWithId(id);
+       console.log({studentToUpdate});
+
+       if (studentToUpdate == null) {
+           console.log("No student with id " + id + " exists.");
+
+           res.status(404).json({"error": "failed to update student with id " + id + " from the database because it does not exist"});
+           return;
+       }
+       if (first_name !=null) {
+           studentToUpdate.firstName = first_name;
+       }
+       if (last_name !=null) {
+           studentToUpdate.lastName = last_name;
+       }
+       if (birth_date !=null) {
+           studentToUpdate.birthDate = birth_date;
+       }
+       await db.updateExistingStudentInformation(studentToUpdate);
+       res.json(studentToUpdate);
+    } catch (err) {
+        console.error("Error:", err.message);
+        res.status(422).json({ "error": "Failed to update the student with id = " + req.params.id + " in the database." });
+    }
 });
 
 
