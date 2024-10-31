@@ -83,6 +83,38 @@ router.post("/add_student_to_class", async function (req, res)
  */
 router.delete("/drop_student_from_class", async function (req, res)
 {
+    try {
+        const student_id = req.params.studentID;
+        const class_id = req.params.classID;
+
+        // const studentToDrop = await db.dropAnExistingStudentFromAClass(student_id, class_id);
+        const studentToDrop = await db.getStudentWithId(student_id);
+        const classToDropFrom = await db.getStudentWithId(class_id);
+
+
+        if (classToDropFrom === null) {
+            console.log(`could not find class with id ${class_id} from the database because it does not exist`);
+            res.status(404).json({"error": "could not find the class."});
+            return;
+        }
+        if (studentToDrop === null) {
+            console.log(`Could not find student with id ${student_id} from the database because it does not exist`);
+            res.status(404).json({"error": "could not find student in db."});
+
+
+        }
+        console.log(`Attempting to drop ${studentToDrop} from ${classToDropFrom}`);
+
+        await db.dropAnExistingStudentFromAClass(student_id, class_id);
+
+        res.status(204).send();
+
+
+    }
+    catch (err) {
+        console.error("Error:", err.message);
+        res.status(422).json({"error": "Failed to drop the student from the class."});
+    }
     // TODO: implement this route
 });
 
