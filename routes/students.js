@@ -67,7 +67,44 @@ router.post("/students", async function (req, res)
     // TODO: implement this route
     try
     {
-        const
+
+        const first_name = req.body.firstName;
+        const last_name = req.body.lastName;
+        const birth_date = req.body.birthDate;
+
+        console.log("first_name:", first_name);
+        console.log("last_name:", last_name);
+        console.log("birth_date:", birth_date);
+
+        if (first_name === undefined)
+        {
+            res.status(400).json({"error": "parameter firstName is required"});
+            return;
+        }
+        if (last_name === undefined)
+        {
+            res.status(400).json({"error": "parameter lastName is required"});
+            return;
+        }
+        if (birth_date === undefined)
+        {
+            res.status(400).json({"error": "parameter birthDate is required"});
+            return;
+        }
+        let createdStudent = {
+            id: null,
+            firstName: first_name,
+            lastName: last_name,
+            birthDate: birth_date
+        };
+        createdStudent = await db.addNewStudent(createdStudent);
+        console.log("createdStudent:", createdStudent);
+        res.status(201.).json(createdStudent);
+    }
+    catch (err)
+    {
+        console.error("Error:", err.message);
+        res.status(422).json({ "error": "Failed to add student to the database" });
     }
 });
 
