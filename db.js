@@ -445,7 +445,14 @@ function getAllRegisteredStudents() {
     return new Promise(function (resolve, reject) {
         db.serialize(function () {
             const sql =
-                `TODO: replace me with actual query`;
+                `SELECT students.id,
+       first_name || " " || last_name as students_full_name,
+       class_id,
+       code,
+       title
+FROM students
+INNER JOIN registered_students rs ON students.id = rs.student_id
+INNER JOIN classes c ON c.id = rs.class_id;`;
 
             let listOfRegisteredStudentJoinResults = [];
 
@@ -489,7 +496,8 @@ function addStudentToClass(studentId, classId) {
     return new Promise(function (resolve, reject) {
         db.serialize(function () {
             const sql =
-                `TODO: replace me with actual query`;
+                `INSERT INTO registered_students (class_id, student_id) 
+VALUES (?, ?);`;
 
             function callbackAfterReturnedRowIsProcessed(err, row) {
                 if (err) {
@@ -518,7 +526,8 @@ function dropAnExistingStudentFromAClass(studentId, classId) {
     return new Promise(function (resolve, reject) {
         db.serialize(function () {
             const sql =
-                `TODO: replace me with actual query`;
+                `DELETE from registered_students
+            WHERE class_id = ? AND student_id = ?;`;
 
             function callbackAfterReturnedRowIsProcessed(err, row) {
                 if (err) {
