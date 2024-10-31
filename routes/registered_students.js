@@ -37,7 +37,35 @@ router.get("/registered_students", async function (req, res)
  */
 router.post("/add_student_to_class", async function (req, res)
 {
-    // TODO: implement this route
+    try {
+        const student_id = req.params.studentID;
+        const class_id = req.params.classID;
+
+        console.log("student_id:", student_id);
+        console.log("class_id:", class_id);
+
+        if (student_id === undefined) {
+            // console.log("parameter studentId is required.");
+            res.status(400).json({"error": "studentID parameter is required."});
+            return;
+        }
+        if (class_id === undefined) {
+            res.status(400).json({"error": "classID parameter is required."});
+            return;
+        }
+        let studentRegisteredToClass = {
+            studentID: student_id,
+            classID: class_id
+        };
+        studentRegisteredToClass = await db.addStudentToClass(studentRegisteredToClass);
+        console.log("studentRegisteredToClass:", studentRegisteredToClass);
+        res.status(201).json(studentRegisteredToClass);
+
+    }
+    catch (err) {
+        console.error("Error:", err.message);
+        res.status(422).json({"error": "Failed to register the student to the class "});
+    }
 });
 
 
