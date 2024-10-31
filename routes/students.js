@@ -13,6 +13,8 @@ router.get("/students", async function (req, res)
     try {
         const listOfStudents = await db.getAllStudents();
         console.log("listOfStudents:", listOfStudents);
+
+        res.send(listOfStudents);
     }
     catch (err)
     {

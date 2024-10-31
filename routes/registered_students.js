@@ -38,8 +38,8 @@ router.get("/registered_students", async function (req, res)
 router.post("/add_student_to_class", async function (req, res)
 {
     try {
-        const student_id = req.params.studentID;
-        const class_id = req.params.classID;
+        const student_id = req.body.studentID;
+        const class_id = req.body.classID;
 
         console.log("student_id:", student_id);
         console.log("class_id:", class_id);
@@ -57,7 +57,7 @@ router.post("/add_student_to_class", async function (req, res)
             studentID: student_id,
             classID: class_id
         };
-        studentRegisteredToClass = await db.addStudentToClass(studentRegisteredToClass);
+        studentRegisteredToClass = await db.addStudentToClass(student_id, class_id);
         console.log("studentRegisteredToClass:", studentRegisteredToClass);
         res.status(201).json(studentRegisteredToClass);
 
@@ -84,12 +84,12 @@ router.post("/add_student_to_class", async function (req, res)
 router.delete("/drop_student_from_class", async function (req, res)
 {
     try {
-        const student_id = req.params.studentID;
-        const class_id = req.params.classID;
+        const student_id = req.body.studentID;
+        const class_id = req.body.classID;
 
         // const studentToDrop = await db.dropAnExistingStudentFromAClass(student_id, class_id);
         const studentToDrop = await db.getStudentWithId(student_id);
-        const classToDropFrom = await db.getStudentWithId(class_id);
+        const classToDropFrom = await db.getClassWithId(class_id);
 
 
         if (classToDropFrom === null) {
@@ -103,7 +103,7 @@ router.delete("/drop_student_from_class", async function (req, res)
 
 
         }
-        console.log(`Attempting to drop ${studentToDrop} from ${classToDropFrom}`);
+        console.log(`Attempting to drop student ${student_id} from class ${class_id}`);
 
         await db.dropAnExistingStudentFromAClass(student_id, class_id);
 
@@ -115,7 +115,6 @@ router.delete("/drop_student_from_class", async function (req, res)
         console.error("Error:", err.message);
         res.status(422).json({"error": "Failed to drop the student from the class."});
     }
-    // TODO: implement this route
 });
 
 

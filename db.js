@@ -415,7 +415,7 @@ function deleteExistingStudent(id) {
         db.serialize(function () {
             const sql =
                 `DELETE
-                FROM classes
+                FROM students
                 WHERE id = ?;`;
 
             function callbackAfterReturnedRowIsProcessed(err, row) {
